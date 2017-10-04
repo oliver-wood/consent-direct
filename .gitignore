@@ -1,0 +1,9 @@
+# Logs
+logs
+*.log
+
+# Build
+truffle/build/*
+
+# Node
+node_modules
