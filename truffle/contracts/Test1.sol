@@ -2,11 +2,6 @@ pragma solidity ^0.4.4;
 
 contract Test1 {
 
-   struct questionsStruct {
-       string question;
-       // possible answers
-   }
-
    struct organisationData {
        string name;
        State currentState;
@@ -84,5 +79,42 @@ contract Test1 {
       return OrgData[owner].questions[questionNumber];
   }
     
+}
+
+
+
+
+contract Test2 {
+    //Test1 t1 = Test1(0x62dc125741851e1e9a3d9e6623652e93b31ce8f2);
+
+    struct userResponse {
+        address questionSetOwner;
+        bool[] answers;
+    }
+
+    struct user {
+        string userId; // could be email address or email hash
+        userResponse[] userResponses;
+        bool isCreated;
+    }
+
+    mapping(address=>user) users;
+    
+    // register a new user account - only called once per user
+    function registerUser(string _userId) public {
+        user thisUser = users[msg.sender];
+        if(thisUser.isCreated) {
+            revert();
+        }
+        
+        thisUser.userId = _userId;
+        thisUser.isCreated = true;
+    }
+
+    function isRegisteredUser(string _userId) public {
+        // 
+    }
+    
+
 }
 
