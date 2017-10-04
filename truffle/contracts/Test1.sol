@@ -9,23 +9,61 @@ contract Test1 {
 
    struct organisationData {
        string name;
+       State currentState;
        uint questionCount;
        string []questions;
+       bool isAvailable;
    }
 
-
+  enum State { Development, Live, Archived }
+  
+   address contractOwner;
    mapping (address=>organisationData) public OrgData;
 
-  // mapping (address=>questionsStruct[]) public Questions;
-   
+
    function Test1() public {
-     // constructor
+     contractOwner = msg.sender;
    }
    
-   function setName(string name) public {
-       OrgData[msg.sender].name = name;
+   
+   modifier ifCreator() {
+       if (msg.sender == contractOwner) {
+           _;
+       } else {
+           revert();
+       }
    }
-   function addQuestion(string questionToAdd) public {
+   
+   modifier ifValidOrganisation() {
+       if (OrgData[msg.sender].isAvailable ) {
+           _;
+       } else {
+           revert();
+       }
+   }
+
+   modifier ifInDevelopmentState() {
+       if (OrgData[msg.sender].currentState == State.Development ) {
+           _;
+       } else {
+           revert();
+       }
+   }
+
+   
+   function createOrganisation(string name) ifCreator() public {
+       OrgData[msg.sender].name = name;
+       OrgData[msg.sender].currentState = State.Development;
+       OrgData[msg.sender].isAvailable = true;
+   }
+
+   function setStateToLive() ifValidOrganisation() public {
+       OrgData[msg.sender].currentState = State.Live;
+   }
+
+
+
+   function addQuestion(string questionToAdd) ifValidOrganisation() ifInDevelopmentState() public {
        OrgData[msg.sender].questions.push(questionToAdd);
        OrgData[msg.sender].questionCount++;
    }
@@ -38,7 +76,7 @@ contract Test1 {
       return OrgData[owner].questionCount;
   }
 
-  function getQuestion(uint questionNumber) constant public returns (string) {
+  function getQuestion(uint questionNumber) ifValidOrganisation() constant public returns (string) {
       return OrgData[msg.sender].questions[questionNumber];
   }
   
