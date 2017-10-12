@@ -1,6 +1,8 @@
-pragma solidity ^0.4.14;
+pragma solidity ^0.4.6;
 
 contract Test1 {
+
+  event LogSomething(string _output);
 
   enum State { Development, Live, Archived }
 
@@ -14,7 +16,7 @@ contract Test1 {
   }
   
   address contractOwner; // who created this overall contract
-  
+
   // each account has a single 'organisation'
   mapping (address=>organisationData) public orgData;
 
@@ -23,6 +25,7 @@ contract Test1 {
   }
 
   modifier ifCreator() {
+    LogSomething("ifCreator");
     if (msg.sender == contractOwner) {
       _;
     } else {
@@ -48,9 +51,22 @@ contract Test1 {
     }
   }
  
+  function getContractOwner() constant public returns (address) {
+      return contractOwner;
+  }
+  
+  // utility function - just in case
+  function toString(address x) returns (string) {
+    bytes memory b = new bytes(20);
+    for (uint i = 0; i < 20; i++)
+        b[i] = byte(uint8(uint(x) / (2**(8*(19 - i)))));
+    return string(b);
+  }
+  
   function createOrganisation(string _name) ifCreator() public {
     orgData[msg.sender].name = _name;
     orgData[msg.sender].currentState = State.Development;
+    orgData[msg.sender].questionCount = 0;
     orgData[msg.sender].isAvailable = true;
   }
 
@@ -79,6 +95,10 @@ contract Test1 {
   
   function getQuestion(address _owner, uint _questionNumber) constant public returns (string) {
     return orgData[_owner].questions[_questionNumber];
+  }
+  
+  function getOrgData(address _owner) constant public returns (string, uint, uint, bool) {
+      return(orgData[_owner].name, uint(orgData[_owner].currentState), orgData[_owner].questionCount, orgData[_owner].isAvailable);
   }
 }
 
@@ -156,6 +176,14 @@ contract Test2 {
   // register an answer for a question - can only be done if a question set is not in development (or indeed exists)
   function registerAnswer(address questSetOrganisation) ifCreator() public {//, string question, bool answer) ifQuestionsLive() public {
   }
+
+  /*function testQuestionCount(address _contractAddress, address _organisationAddress) public returns (uint) {
+    Test1 _t1 = Test1(_contractAddress);
+    _t1.createOrganisation("Test Org Name");
+	uint _count = _t1.getQuestionCount(_organisationAddress);
+	return _count;
+  }*/
+
 
 }
 
