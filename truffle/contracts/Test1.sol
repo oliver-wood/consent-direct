@@ -26,6 +26,9 @@ contract Test1 {
 
   modifier ifCreator() {
     LogSomething("ifCreator");
+    address _msgSender = msg.sender; // just for debug purposes - so I can see the variables
+    address _contractOwner = contractOwner; // just for debug purposes - so I can see the variables
+    
     if (msg.sender == contractOwner) {
       _;
     } else {
@@ -63,6 +66,9 @@ contract Test1 {
     return string(b);
   }
   
+  // TODO: decide what to do here - if a set of questions already exists
+  // for an organistion this will just overwrite the exist details - perhaps
+  // it should not even be allowed????
   function createOrganisation(string _name) ifCreator() public {
     orgData[msg.sender].name = _name;
     orgData[msg.sender].currentState = State.Development;
