@@ -15,21 +15,32 @@ contract Test1 {
     bool isAvailable; // used to just test if an organisation has been added
   }
   
-  address contractOwner; // who created this overall contract
+  address public contractOwner = msg.sender; // who created this contract (public implicitely gives get/set functionality)
+  address public contractAdmin = msg.sender; // an account that can perform admin/owner type actions on the contract. Default to contract creator
+  uint public contractCreationTime = block.timestamp;
+
 
   // each account has a single 'organisation'
   mapping (address=>organisationData) public orgData;
 
+  // constructor
   function Test1() public {
-    contractOwner = msg.sender;
+      LogSomething("Contract created");
   }
 
-  modifier ifCreator() {
-    LogSomething("ifCreator");
+  function setContractAdmin(address _newAdmin) public ifCreatorOrAdmin() {
+      contractAdmin = _newAdmin;
+  }
+
+  modifier ifCreatorOrAdmin() {
+    // be aware that if testing this contract via truffle test this modifier may fail.
+    // see https://ethereum.stackexchange.com/questions/25088/truffle-why-is-my-onlyowner-modifier-not-running-in-truffle/25128
+    // This is because msg.sender will be the name of the TestTest.sol contract rather than an account    
+    // LogSomething("> ifCreatorOrAdmin modifier");
     address _msgSender = msg.sender; // just for debug purposes - so I can see the variables
     address _contractOwner = contractOwner; // just for debug purposes - so I can see the variables
-    
-    if (msg.sender == contractOwner) {
+
+    if ( (msg.sender==contractOwner) || (msg.sender==contractAdmin)) {
       _;
     } else {
       revert();
@@ -54,29 +65,17 @@ contract Test1 {
     }
   }
  
-  function getContractOwner() constant public returns (address) {
-      return contractOwner;
-  }
-  
-  // utility function - just in case
-  function toString(address x) returns (string) {
-    bytes memory b = new bytes(20);
-    for (uint i = 0; i < 20; i++)
-        b[i] = byte(uint8(uint(x) / (2**(8*(19 - i)))));
-    return string(b);
-  }
-  
   // TODO: decide what to do here - if a set of questions already exists
   // for an organistion this will just overwrite the exist details - perhaps
   // it should not even be allowed????
-  function createOrganisation(string _name) ifCreator() public {
+  function createOrganisation(string _name) ifCreatorOrAdmin() public {
     orgData[msg.sender].name = _name;
     orgData[msg.sender].currentState = State.Development;
     orgData[msg.sender].questionCount = 0;
     orgData[msg.sender].isAvailable = true;
   }
 
-  // move from dev (or other state) to live
+  // Move from dev (or other state) to live. You can only set yor own details to live.
   function setStateToLive() ifValidOrganisation() public {
     orgData[msg.sender].currentState = State.Live;
   }
@@ -101,6 +100,10 @@ contract Test1 {
   
   function getQuestion(address _owner, uint _questionNumber) constant public returns (string) {
     return orgData[_owner].questions[_questionNumber];
+  }
+
+  function getOrgName() constant public returns (string) {
+      return(orgData[msg.sender].name);
   }
   
   function getOrgData(address _owner) constant public returns (string, uint, uint, bool) {

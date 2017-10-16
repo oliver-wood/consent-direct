@@ -9,6 +9,13 @@ contract TestTest1 {
 
   enum State { Development, Live, Archived }
 
+  function testTest1ContractOwner() {
+    Test1 _t1 = Test1(DeployedAddresses.Test1());
+    address _a = _t1.getContractOwner();
+	address _b = tx.origin;
+    Assert.equal(_a, _b, "Contract owner and TX origin not equal.");	
+  }
+
   function testOrganisationNotCreated() {
     Test1 _t1 = Test1(DeployedAddresses.Test1());
     var(_orgName, _orgState, _orgQuestionCount, _orgIsAvailable) = _t1.getOrgData(tx.origin);
@@ -17,7 +24,6 @@ contract TestTest1 {
 
 
   function testOrganisationCreated() {
-//    LogSomething("111");
     Test1 _t1 = Test1(DeployedAddresses.Test1());
 //    LogSomething("222");
 	_t1.createOrganisation("Name");
@@ -25,14 +31,6 @@ contract TestTest1 {
     //var(_orgName, _orgState, _orgQuestionCount, _orgIsAvailable) = _t1.getOrgData(tx.origin);
     //Assert.isTrue(_orgIsAvailable, "Data for this organisation not yet created");
     Assert.isTrue(true, "All OK");
-  }
-
-
-  function testTest1ContractOwner() {
-    Test1 _t1 = Test1(DeployedAddresses.Test1());
-    address _a = _t1.getContractOwner();
-	address _b = tx.origin;
-    Assert.equal(_a, _b, "Contract owner and TX origin not equal.");	
   }
 
 }
